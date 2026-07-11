@@ -1,11 +1,11 @@
 from pydantic import BaseModel, Field, field_validator
 
 
-class Patient(BaseModel):
+class PatientBase(BaseModel):
     first_name: str = Field(..., min_length=2, max_length=50)
     last_name: str = Field(..., min_length=2, max_length=50)
-    phone: str
-    national_code: str
+    phone: str = Field(..., min_length=11, max_length=11)
+    national_code: str = Field(..., min_length=10, max_length=10)
     birth_date: str
     gender: str
     address: str
@@ -13,39 +13,63 @@ class Patient(BaseModel):
     @field_validator("phone")
     @classmethod
     def validate_phone(cls, value):
+        if not value.isdigit():
+            raise ValueError("شماره تلفن باید فقط شامل عدد باشد")
+
         if len(value) != 11:
-            raise ValueError("شماره موبایل باید ۱۱ رقم باشد.")
+            raise ValueError("شماره تلفن باید ۱۱ رقم باشد")
 
         if not value.startswith("09"):
-            raise ValueError("شماره موبایل باید با 09 شروع شود.")
-
-        if not value.isdigit():
-            raise ValueError("شماره موبایل فقط باید شامل عدد باشد.")
+            raise ValueError("شماره تلفن باید با 09 شروع شود")
 
         return value
 
     @field_validator("national_code")
     @classmethod
     def validate_national_code(cls, value):
-        if len(value) != 10:
-            raise ValueError("کد ملی باید ۱۰ رقم باشد.")
-
         if not value.isdigit():
-            raise ValueError("کد ملی فقط باید شامل عدد باشد.")
+            raise ValueError("کد ملی باید فقط شامل عدد باشد")
 
-        check = int(value[9])
+        if len(value) != 10:
+            raise ValueError("کد ملی باید ۱۰ رقم باشد")
 
-        total = 0
-        for i in range(9):
-            total += int(value[i]) * (10 - i)
+        if len(set(value)) == 1:
+            raise ValueError("کد ملی معتبر نیست")
+
+        check_digit = int(value[9])
+
+        total = sum(
+            int(value[i]) * (10 - i)
+            for i in range(9)
+        )
 
         remainder = total % 11
 
         if remainder < 2:
-            if check != remainder:
-                raise ValueError("کد ملی معتبر نیست.")
+            valid = check_digit == remainder
         else:
-            if check != (11 - remainder):
-                raise ValueError("کد ملی معتبر نیست.")
+            valid = check_digit == 11 - remainder
+
+        if not valid:
+            raise ValueError("کد ملی معتبر نیست")
 
         return value
+
+
+class PatientCreate(PatientBase):
+    pass
+
+
+class PatientResponse(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    phone: str
+    national_code: str
+    birth_date: str
+    gender: str
+    address: str
+
+    model_config = {
+        "from_attributes": True
+    }

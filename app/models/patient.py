@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, String
 from app.database.base import Base
 
 
-class Patient(Base):
+class PatientModel(Base):
     __tablename__ = "patients"
 
     id = Column(Integer, primary_key=True, index=True)

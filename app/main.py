@@ -5,7 +5,7 @@ from app.database.connection import engine
 from app.database.base import Base
 
 # همه مدل‌ها را import می‌کنیم تا SQLAlchemy آن‌ها را بشناسد
-from app.models.patient import Patient
+from app.models.patient import PatientModel
 
 app = FastAPI()
 
