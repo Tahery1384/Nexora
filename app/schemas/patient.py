@@ -60,15 +60,12 @@ class PatientCreate(PatientBase):
     pass
 
 
-class PatientResponse(BaseModel):
+class PatientUpdate(PatientBase):
+    pass
+
+
+class PatientResponse(PatientBase):
     id: int
-    first_name: str
-    last_name: str
-    phone: str
-    national_code: str
-    birth_date: str
-    gender: str
-    address: str
 
     model_config = {
         "from_attributes": True
