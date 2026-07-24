@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -5,6 +7,7 @@ from app.database.connection import get_db
 from app.schemas.patient import (
     PatientCreate,
     PatientUpdate,
+    PatientPatch,
     PatientResponse
 )
 from app.services.patient_service import PatientService
@@ -27,6 +30,23 @@ def get_patients(
     return PatientService.get_patients(db)
 
 
+@router.get("/patients/search", response_model=list[PatientResponse])
+def search_patients(
+    national_code: Optional[str] = None,
+    first_name: Optional[str] = None,
+    last_name: Optional[str] = None,
+    phone: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    return PatientService.search_patients(
+        db=db,
+        national_code=national_code,
+        first_name=first_name,
+        last_name=last_name,
+        phone=phone
+    )
+
+
 @router.get("/patients/{patient_id}", response_model=PatientResponse)
 def get_patient(
     patient_id: int,
@@ -45,6 +65,19 @@ def update_patient(
     db: Session = Depends(get_db)
 ):
     return PatientService.update_patient(
+        patient_id,
+        patient,
+        db
+    )
+
+
+@router.patch("/patients/{patient_id}", response_model=PatientResponse)
+def patch_patient(
+    patient_id: int,
+    patient: PatientPatch,
+    db: Session = Depends(get_db)
+):
+    return PatientService.patch_patient(
         patient_id,
         patient,
         db

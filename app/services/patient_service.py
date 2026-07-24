@@ -2,13 +2,20 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.models.patient import PatientModel
-from app.schemas.patient import PatientCreate, PatientUpdate
+from app.schemas.patient import (
+    PatientCreate,
+    PatientUpdate,
+    PatientPatch
+)
 
 
 class PatientService:
 
     @staticmethod
-    def create_patient(patient: PatientCreate, db: Session):
+    def create_patient(
+        patient: PatientCreate,
+        db: Session
+    ):
         new_patient = PatientModel(
             first_name=patient.first_name,
             last_name=patient.last_name,
@@ -25,15 +32,61 @@ class PatientService:
 
         return new_patient
 
-    @staticmethod
-    def get_patients(db: Session):
-        return db.query(PatientModel).all()
 
     @staticmethod
-    def get_patient(patient_id: int, db: Session):
+    def get_patients(
+        db: Session
+    ):
+        return db.query(PatientModel).all()
+
+
+    @staticmethod
+    def search_patients(
+        db: Session,
+        national_code: str = None,
+        first_name: str = None,
+        last_name: str = None,
+        phone: str = None
+    ):
+        query = db.query(PatientModel)
+
+        if national_code:
+            query = query.filter(
+                PatientModel.national_code == national_code
+            )
+
+        if first_name:
+            query = query.filter(
+                PatientModel.first_name.ilike(
+                    f"%{first_name}%"
+                )
+            )
+
+        if last_name:
+            query = query.filter(
+                PatientModel.last_name.ilike(
+                    f"%{last_name}%"
+                )
+            )
+
+        if phone:
+            query = query.filter(
+                PatientModel.phone == phone
+            )
+
+        return query.all()
+
+
+    @staticmethod
+    def get_patient(
+        patient_id: int,
+        db: Session
+    ):
         patient = (
             db.query(PatientModel)
-            .filter(PatientModel.id == patient_id)
+            .filter(
+                PatientModel.id == patient_id
+            )
             .first()
         )
 
@@ -44,6 +97,7 @@ class PatientService:
             )
 
         return patient
+
 
     @staticmethod
     def update_patient(
@@ -68,6 +122,35 @@ class PatientService:
         db.refresh(db_patient)
 
         return db_patient
+
+
+    @staticmethod
+    def patch_patient(
+        patient_id: int,
+        patient: PatientPatch,
+        db: Session
+    ):
+        db_patient = PatientService.get_patient(
+            patient_id,
+            db
+        )
+
+        update_data = patient.model_dump(
+            exclude_unset=True
+        )
+
+        for key, value in update_data.items():
+            setattr(
+                db_patient,
+                key,
+                value
+            )
+
+        db.commit()
+        db.refresh(db_patient)
+
+        return db_patient
+
 
     @staticmethod
     def delete_patient(

@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -62,6 +64,16 @@ class PatientCreate(PatientBase):
 
 class PatientUpdate(PatientBase):
     pass
+
+
+class PatientPatch(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
+    national_code: Optional[str] = None
+    birth_date: Optional[str] = None
+    gender: Optional[str] = None
+    address: Optional[str] = None
 
 
 class PatientResponse(PatientBase):
