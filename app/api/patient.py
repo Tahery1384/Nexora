@@ -25,9 +25,15 @@ def add_patient(
 
 @router.get("/patients", response_model=list[PatientResponse])
 def get_patients(
+    skip: int = 0,
+    limit: int = 10,
     db: Session = Depends(get_db)
 ):
-    return PatientService.get_patients(db)
+    return PatientService.get_patients(
+        db=db,
+        skip=skip,
+        limit=limit
+    )
 
 
 @router.get("/patients/search", response_model=list[PatientResponse])

@@ -76,28 +76,18 @@ class PatientService:
 
         return query.all()
 
-
     @staticmethod
-    def get_patient(
-        patient_id: int,
-        db: Session
+    def get_patients(
+        db: Session,
+        skip: int = 0,
+        limit: int = 10
     ):
-        patient = (
+        return (
             db.query(PatientModel)
-            .filter(
-                PatientModel.id == patient_id
-            )
-            .first()
+            .offset(skip)
+            .limit(limit)
+            .all()
         )
-
-        if patient is None:
-            raise HTTPException(
-                status_code=404,
-                detail="Patient not found"
-            )
-
-        return patient
-
 
     @staticmethod
     def update_patient(
@@ -123,7 +113,6 @@ class PatientService:
 
         return db_patient
 
-
     @staticmethod
     def patch_patient(
         patient_id: int,
@@ -140,17 +129,12 @@ class PatientService:
         )
 
         for key, value in update_data.items():
-            setattr(
-                db_patient,
-                key,
-                value
-            )
+            setattr(db_patient, key, value)
 
         db.commit()
         db.refresh(db_patient)
 
         return db_patient
-
 
     @staticmethod
     def delete_patient(
