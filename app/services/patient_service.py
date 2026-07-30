@@ -46,7 +46,12 @@ class PatientService:
         national_code: str = None,
         first_name: str = None,
         last_name: str = None,
-        phone: str = None
+        phone: str = None,
+        gender: str = None,
+        skip: int = 0,
+        limit: int = 10,
+        sort_by: str = "id",
+        order: str = "asc"
     ):
         query = db.query(PatientModel)
 
@@ -73,20 +78,49 @@ class PatientService:
             query = query.filter(
                 PatientModel.phone == phone
             )
+        if gender:
+            query = query.filter(
+                PatientModel.gender == gender
+            )
 
-        return query.all()
+        if hasattr(PatientModel, sort_by):
+          column = getattr(PatientModel, sort_by)
 
-    @staticmethod
-    def get_patients(
-        db: Session,
-        skip: int = 0,
-        limit: int = 10
-    ):
+        if order.lower() == "desc":
+          query = query.order_by(column.desc())
+        else:
+           query = query.order_by(column.asc())
+
         return (
-            db.query(PatientModel)
+            query
             .offset(skip)
             .limit(limit)
             .all()
+        )
+
+    @staticmethod
+    def get_patients(
+       db: Session,
+       skip: int = 0,
+       limit: int = 10,
+       sort_by: str = "id",
+       order: str = "asc"
+    ):
+       query = db.query(PatientModel)
+
+       if hasattr(PatientModel, sort_by):
+          column = getattr(PatientModel, sort_by)
+
+       if order.lower() == "desc":
+        query = query.order_by(column.desc())
+       else:
+        query = query.order_by(column.asc())
+
+       return (
+         query
+         .offset(skip)
+         .limit(limit)
+         .all()
         )
 
     @staticmethod

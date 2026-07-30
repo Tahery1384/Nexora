@@ -27,12 +27,16 @@ def add_patient(
 def get_patients(
     skip: int = 0,
     limit: int = 10,
+    sort_by: str = "id",
+    order: str = "asc",
     db: Session = Depends(get_db)
 ):
     return PatientService.get_patients(
         db=db,
         skip=skip,
-        limit=limit
+        limit=limit,
+        sort_by=sort_by,
+        order=order
     )
 
 
@@ -42,6 +46,11 @@ def search_patients(
     first_name: Optional[str] = None,
     last_name: Optional[str] = None,
     phone: Optional[str] = None,
+    gender: Optional[str] = None,
+    skip: int = 0,
+    limit: int = 10,
+    sort_by: str = "id",
+    order: str = "asc",
     db: Session = Depends(get_db)
 ):
     return PatientService.search_patients(
@@ -49,7 +58,12 @@ def search_patients(
         national_code=national_code,
         first_name=first_name,
         last_name=last_name,
-        phone=phone
+        phone=phone,
+        gender=gender,
+        skip=skip,
+        limit=limit,
+        sort_by=sort_by,
+        order=order
     )
 
 
@@ -75,8 +89,6 @@ def update_patient(
         patient,
         db
     )
-
-
 @router.patch("/patients/{patient_id}", response_model=PatientResponse)
 def patch_patient(
     patient_id: int,
