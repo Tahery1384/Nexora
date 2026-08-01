@@ -13,31 +13,63 @@ class PatientService:
 
     @staticmethod
     def create_patient(
-        patient: PatientCreate,
-        db: Session
+       patient: PatientCreate,
+       db: Session
     ):
-        new_patient = PatientModel(
-            first_name=patient.first_name,
-            last_name=patient.last_name,
-            phone=patient.phone,
-            national_code=patient.national_code,
-            birth_date=patient.birth_date,
-            gender=patient.gender,
-            address=patient.address
-        )
+       existing_patient = (
+           db.query(PatientModel)
+           .filter(
+               PatientModel.national_code == patient.national_code
+           )
+           .first()
+       )
 
-        db.add(new_patient)
-        db.commit()
-        db.refresh(new_patient)
+       if existing_patient:
+           raise HTTPException(
+               status_code=409,
+               detail="Patient with this national code already exists"
+           )
 
-        return new_patient
+       new_patient = PatientModel(
+           first_name=patient.first_name,
+           last_name=patient.last_name,
+           phone=patient.phone,
+           national_code=patient.national_code,
+           birth_date=patient.birth_date,
+           gender=patient.gender,
+           address=patient.address
+       )
 
+       db.add(new_patient)
+       db.commit()
+       db.refresh(new_patient)
+
+       return new_patient
 
     @staticmethod
     def get_patients(
-        db: Session
+        db: Session,
+        skip: int = 0,
+        limit: int = 10,
+        sort_by: str = "id",
+        order: str = "asc"
     ):
-        return db.query(PatientModel).all()
+     query = db.query(PatientModel)
+
+     if hasattr(PatientModel, sort_by):
+        column = getattr(PatientModel, sort_by)
+
+        if order.lower() == "desc":
+            query = query.order_by(column.desc())
+        else:
+            query = query.order_by(column.asc())
+
+        return (
+         query
+         .offset(skip)
+         .limit(limit)
+         .all()
+        )
 
 
     @staticmethod

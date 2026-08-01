@@ -2,7 +2,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-
+from app.schemas.response import ApiResponse
 from app.database.connection import get_db
 from app.schemas.patient import (
     PatientCreate,
@@ -15,15 +15,30 @@ from app.services.patient_service import PatientService
 router = APIRouter()
 
 
-@router.post("/patients", response_model=PatientResponse)
+@router.post(
+    "/patients",
+    response_model=ApiResponse[PatientResponse]
+)
 def add_patient(
     patient: PatientCreate,
     db: Session = Depends(get_db)
 ):
-    return PatientService.create_patient(patient, db)
+    new_patient = PatientService.create_patient(
+        patient,
+        db
+    )
+
+    return ApiResponse(
+        success=True,
+        message="Patient created successfully",
+        data=new_patient
+    )
 
 
-@router.get("/patients", response_model=list[PatientResponse])
+@router.get(
+    "/patients",
+    response_model=ApiResponse[list[PatientResponse]]
+)
 def get_patients(
     skip: int = 0,
     limit: int = 10,
@@ -31,12 +46,18 @@ def get_patients(
     order: str = "asc",
     db: Session = Depends(get_db)
 ):
-    return PatientService.get_patients(
+    patients = PatientService.get_patients(
         db=db,
         skip=skip,
         limit=limit,
         sort_by=sort_by,
         order=order
+    )
+
+    return ApiResponse(
+        success=True,
+        message="Patients fetched successfully",
+        data=patients
     )
 
 
